@@ -173,6 +173,7 @@ func main() {
 	// 요청 핸들러를 두가지의 URL 패턴에 대응하게 생성함
 	//  문서는 pattern 에 대해 확정성이 부족해보임. 그럼 gorilla/mux를 쓰는것이 좋다
 	mux := http.NewServeMux()
+
 	mux.Handle("/home", http.HandlerFunc(HomeHandler))
 	mux.Handle("/item/", http.HandlerFunc(ItemHandler))
 	mux.Handle("/generic/", http.HandlerFunc(GenericHandler))
