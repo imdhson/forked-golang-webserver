@@ -1,108 +1,105 @@
 //
 // webserver.go
 //
-// An example of a golang web server.
+// GoLang을 통한 웹서버의 간단한 구현 예제입니다.
 //
-// Usage:
+// 사용 예:
 //
-//   # run go server in the background
+//   # 백그라운드에서 사용하기
 //   $ go run webserver &
 //
-//   While that's running, use a browser to visit a page. 
-//   It responds in one of several ways :
+//   실행중에 브라우저로 페이지를 방문하세요.
+//   It responds in one of several ways : 몇 가지 방법으로 응답합니다.
 //
-//  (0) for the URL /home it sends a home HTML page,
-//      that runs an AJAX secondary get
+//  (0)  /home으로는 home HTML 페이지를 보내줍니다. 이것은 AJAX secondary GET을 수행합니다.
 //
-//   (1) For URLS that start with /generic/ 
-//       it sends some text/plain diagnostics.
-//
+//   (1) /generic URL은 조금의 text/plain 진단을 보내줍니다.
 //       URL: http://localhost:8097/generic/page?color=purple
 //       browser (text/plain) :
-//           FooWebHandler says ... 
+//           FooWebHandler says ...
 //             request.Method      'GET'
 //             request.RequestURI  '/generic/page?color=purple'
 //             request.URL.Path    '/generic/page'
 //             request.Form        'map[color:[purple]]'
 //             request.Cookies()   '[testcookiename=testcookievalue]'
 //
-//   (2) For URLs of the form /item/textstring, 
-//       it sends back a simplistic JSON response.
-//       (In a real application, texstring could for example be
-//       the name of an item, and the response could describe it.)
+//   (2) /item/텍스트스트링 으로 URL을 입력하면 간단한 JSON 응답을 해줍니다.
+// 	  실제 앱에서는 textstring은 item의 이름이 될 수 있습니다. 그리고 응답은 그에 대한 설명이 되곤합니다.
 //
 //       URL: http://localhost:8097/item/yellow
 //       browser (application/json) :
 //           {"name":"yellow", "what":"item"}
 //
-//   (3) Other pages give an error.
+//   (3) 다른 페이지는 에러페이지를 출력해줍니다.
 //
 //       URL: http://localhost:8097/other/path
 //       browser :
 //           404 page not found
 //
-// Each visit sets a simple cookie, which
-// can be accessed from the request after the 1st visit.
+// 매 방문은 간단한 쿠키를 설정해줍니다. 첫번 째 방문 이후로는 요청을 할 수 있습니다.
 //
-// For use in an AJAX setting, you should first decide on a way to
-// encode requests for information or submission of data into the URL.
-// A REST API would for example use GET and PUT along with URLs that
-// put the information requested or sent in the path, like the
-// /item/name example here. Or you could use form or data passed in
-// the ?keyword=value part of the URL, though I think that's less
-// clean. Then to pass the data back to the javascript at the client,
-// JSON as shown in the /item/name example is a good choice.
-//
-// For a discussion of REST see 
+// AJAX 설정을 하려면, 너는 정보와 submission의
+// 데이터를 URL에 넣기 위한 AJAX 인코드 요청을 결정해야할 것이다.
+// REST API는 여기 있는 /item/name 예제와 같이 요청하거나 전송한
+// 정보를 경로에 입력하는 URL과 함께 GET or PUT을 사용합니다.
+// 또는 URL의 ?dll=value 부분에 전달된 양식이나 데이터를 사용할 수도 있지만
+// 그다지 깨끗하지는 않다고 생각합니다.
+// 그런 다음 클라이언트의 Javascript에 데이터를 다시 전달하려면
+//	item/name 예제와 같이 JSON을 사용하는 것이 좋습니다.
+
+// For a discussion of REST see
 // en.wikipedia.org/wiki/Representational_state_transfer#Central_principle
 //
-// Go also has a 3rd party gorilla/mux package that looks interesting,
-// setting up fancier ways to extract information from the URL and
-// decide which function will respond to a request.  See
-// http://www.gorillatoolkit.org/pkg/mux for its details.
+// GO는 또한 서드파티 라이브러리로 gorilla/mux 라는 흥미로운 것이 있습니다.
+// URL에서 더 간지나는 방법으로 정보를 추출하거나
+// 어떤 함수가 요청에 응할지 정할 수 있다.
+// http://www.gorillatoolkit.org/pkg/mux 여기서 참고하도록
 //
-// Docs and examples for this stuff can be found at
+// 참고할 만한 자료들
 //   http://golang.org/pkg/net/http      particularly #Request
-//   http://golang.org/pkg/net/url/#URL  what's in request.URL 
+//   http://golang.org/pkg/net/url/#URL  what's in request.URL
 //   https://devcharm.com/pages/8-golang-net-http-handlers
 //   http://www.alexedwards.net/blog/a-recap-of-request-handling
 //   http://blog.golang.org/json-and-go
 //
 // Jim Mahoney | cs.marlboro.edu | MIT License | March 2014
+// KOR (한국어) 번역 - git.imdhs.one
+//					git.imdhson.com
+//					github.com/imdhson
 
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 	"log"
 	"net/http"
 	"regexp"
-	"encoding/json"
+	"strconv"
 )
 
-func SetMyCookie(response http.ResponseWriter){
-	// Add a simplistic cookie to the response.
-	cookie := http.Cookie{Name: "testcookiename", Value:"testcookievalue"}
+func SetMyCookie(response http.ResponseWriter) {
+	// 응답에 간단한 쿠키를 추가합니다.
+	cookie := http.Cookie{Name: "testcookiename", Value: "testcookievalue"}
 	http.SetCookie(response, &cookie)
 }
 
-// Respond to URLs of the form /generic/...
-func GenericHandler(response http.ResponseWriter, request *http.Request){
+// /generic URL 형식에 대한 응답
+func GenericHandler(response http.ResponseWriter, request *http.Request) {
 
-	// Set cookie and MIME type in the HTTP headers.
+	// 쿠키를 설정하고 MIME type을 http 헤더에 설정
 	SetMyCookie(response)
 	response.Header().Set("Content-type", "text/plain")
 
-	// Parse URL and POST data into the request.Form
+	//URL을 Parse하고 POST 데이터를 요청에 포함합니다.
 	err := request.ParseForm()
 	if err != nil {
 		http.Error(response, fmt.Sprintf("error parsing url %v", err), 500)
 	}
 
-	// Send the text diagnostics to the client.
-	fmt.Fprint(response,  "FooWebHandler says ... \n")
+	//text 진단 결과를 클라이언트에게 전달
+	fmt.Fprint(response, "FooWebHandler says ... \n")
 	fmt.Fprintf(response, " request.Method     '%v'\n", request.Method)
 	fmt.Fprintf(response, " request.RequestURI '%v'\n", request.RequestURI)
 	fmt.Fprintf(response, " request.URL.Path   '%v'\n", request.URL.Path)
@@ -110,62 +107,58 @@ func GenericHandler(response http.ResponseWriter, request *http.Request){
 	fmt.Fprintf(response, " request.Cookies()  '%v'\n", request.Cookies())
 }
 
-// Respond to the URL /home with an html home page
-func HomeHandler(response http.ResponseWriter, request *http.Request){
+// /home에 대한 응답으로 html home page를 응답해줌
+func HomeHandler(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-type", "text/html")
 	webpage, err := ioutil.ReadFile("home.html")
-	if err != nil { 
+	if err != nil {
 		http.Error(response, fmt.Sprintf("home.html file error %v", err), 500)
 	}
-	fmt.Fprint(response, string(webpage));
+	fmt.Fprint(response, string(webpage))
 }
 
-// Respond to URLs of the form /item/...
-func ItemHandler(response http.ResponseWriter, request *http.Request){
+// /item/...에 대한 응답
+func ItemHandler(response http.ResponseWriter, request *http.Request) {
 
-	// Set cookie and MIME type in the HTTP headers.
+	// 쿠키를 설정하고 MIME type을 http 헤더에 설정
 	SetMyCookie(response)
 	response.Header().Set("Content-type", "application/json")
 
-	// Some sample data to be sent back to the client.
-	data := map[string]string { "what" : "item", "name" : "" }
+	// 클라이언트에게 재전송할 일부 샘플 데이터
+	data := map[string]string{"what": "item", "name": ""}
 
-	// Was the URL of the form /item/name ?
+	// URL 형식이 /item/name이 맞는가?
 	var itemURL = regexp.MustCompile(`^/item/(\w+)$`)
 	var itemMatches = itemURL.FindStringSubmatch(request.URL.Path)
-	// itemMatches is captured regex matches i.e. ["/item/which", "which"]
+	// itemMatches는 regex 매치로 다음과 같이 작동  ["/item/which", "which"]
 	if len(itemMatches) > 0 {
-		// Yes, so send the JSON to the client.
-		data["name"] = itemMatches[1] 
+		// 참일 경우 JSON을 클라이언트에게 전송
+		data["name"] = itemMatches[1]
 		json_bytes, _ := json.Marshal(data)
 		fmt.Fprintf(response, "%s\n", json_bytes)
 
 	} else {
-		// No, so send "page not found."
+		// 거짓일 경우 오류 전달
 		http.Error(response, "404 page not found", 404)
 	}
 }
 
-func main(){
+func main() {
 	port := 8097
 	portstring := strconv.Itoa(port)
 
-	// Register request handlers for two URL patterns.
-	// (The docs are unclear on what a 'pattern' is, 
-	// but seems be the start of the URL, ending in a /).
-	// See gorilla/mux for a more powerful matching system.
-	// Note that the "/" pattern matches all request URLs.
+	// 요청 핸들러를 두가지의 URL 패턴에 대응하게 생성함
+	//  문서는 pattern 에 대해 확정성이 부족해보임. 그럼 gorilla/mux를 쓰는것이 좋다
 	mux := http.NewServeMux()
-	mux.Handle("/home", http.HandlerFunc( HomeHandler ))
-	mux.Handle("/item/", http.HandlerFunc( ItemHandler ))
-	mux.Handle("/generic/", http.HandlerFunc( GenericHandler ))
+	mux.Handle("/home", http.HandlerFunc(HomeHandler))
+	mux.Handle("/item/", http.HandlerFunc(ItemHandler))
+	mux.Handle("/generic/", http.HandlerFunc(GenericHandler))
 
-	// Start listing on a given port with these routes on this server.
-	// (I think the server name can be set here too , i.e. "foo.org:8080")
+	//  지정된 포트로 서버를 가동하여 listen 시작
+	// (개인적으로 생각하길 서버 이름도 여기서 설정가능 할 것이다.)
 	log.Print("Listening on port " + portstring + " ... ")
-	err := http.ListenAndServe(":" + portstring, mux)
+	err := http.ListenAndServe(":"+portstring, mux)
 	if err != nil {
 		log.Fatal("ListenAndServe error: ", err)
 	}
 }
-
