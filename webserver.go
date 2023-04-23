@@ -109,7 +109,7 @@ func GenericHandler(response http.ResponseWriter, request *http.Request) {
 
 // /home에 대한 응답으로 html home page를 응답해줌
 func HomeHandler(response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-type", "text/html")
+	response.Header().Set("Content-type", "text/html; charset=utf-8") //imdhson 수정함
 	webpage, err := ioutil.ReadFile("home.html")
 	if err != nil {
 		http.Error(response, fmt.Sprintf("home.html file error %v", err), 500)
@@ -140,10 +140,11 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 		json_bytes, _ := json.Marshal(data)
 		json_all, _ := json.Marshal(dataall)
 		json_hg, _ := json.Marshal(data_hg)
+		json_cnt, _ := json.Marshal(runecount(data_hg))
 		fmt.Fprintf(response, "%s\n", json_bytes)
 		fmt.Fprintf(response, "%s\n", json_all)
 		fmt.Fprintf(response, "%s\n", json_hg)
-
+		fmt.Fprintf(response, "count of data_hg is : %s\n", json_cnt)
 	} else {
 		// 거짓일 경우 오류 전달
 		http.Error(response, "404 page not found", 404)
@@ -158,6 +159,11 @@ func splitHangeul(in string) []rune {
 		out = append(out, rune(v))
 	}
 	return out
+}
+
+// imdhson이 연습용으로 추가한 함수. 한글자씩 쪼갠 글자가 몇글자인지 세어줌
+func runecount(in []rune) int {
+	return len(in)
 }
 
 func main() {
