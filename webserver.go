@@ -134,8 +134,15 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 	if len(itemMatches) > 0 {
 		// 참일 경우 JSON을 클라이언트에게 전송
 		data["name"] = itemMatches[1]
+		dataall := itemMatches
+		dataall = append(dataall, "이것은 JSON이 수신한 전부입니다. 잘 보셨죠?") //한글이 깨짐
+		data_hg := splitHangeul("이것은 JSON이 수신한 전부입니다. 잘 보셨죠?")
 		json_bytes, _ := json.Marshal(data)
+		json_all, _ := json.Marshal(dataall)
+		json_hg, _ := json.Marshal(data_hg)
 		fmt.Fprintf(response, "%s\n", json_bytes)
+		fmt.Fprintf(response, "%s\n", json_all)
+		fmt.Fprintf(response, "%s\n", json_hg)
 
 	} else {
 		// 거짓일 경우 오류 전달
@@ -143,8 +150,18 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+// imdhson이 연습용으로 추가한 함수. 한글을 한글자씩 rune으로 쪼개에서 변환하여줌
+// 디버그 목적으로 사용하기 적합
+func splitHangeul(in string) []rune {
+	var out []rune
+	for _, v := range in {
+		out = append(out, rune(v))
+	}
+	return out
+}
+
 func main() {
-	port := 8097
+	port := 8080
 	portstring := strconv.Itoa(port)
 
 	// 요청 핸들러를 두가지의 URL 패턴에 대응하게 생성함
