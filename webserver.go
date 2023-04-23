@@ -142,7 +142,7 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 		json_hg, _ := json.Marshal(data_hg)
 		json_cnt, _ := json.Marshal(runecount(data_hg))
 		fmt.Fprintf(response, "%s\n", json_bytes)
-		fmt.Fprintf(response, "%s\n", json_all) //한글이 깨져서 보입니다.
+		fmt.Fprintf(response, "%s\n", json_all) //한글이 브라우저문제로 깨져서 보임.
 		fmt.Fprintf(response, "%s\n", json_hg)
 		fmt.Fprintf(response, "count of data_hg is : %s\n", json_cnt)
 	} else {
