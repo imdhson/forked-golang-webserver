@@ -135,23 +135,18 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 		// 참일 경우 JSON을 클라이언트에게 전송
 		data["name"] = itemMatches[1]
 		dataall := itemMatches
-		dataall = append(dataall, "이것은 JSON이 수신한 전부입니다. 잘 보셨죠?") //한글이 깨짐
-		data_hg := splitHangeul("이것은 JSON이 수신한 전부입니다. 잘 보셨죠?")
+		dataall = append(dataall, "This is long JSON data for calculation for bytes.")
 		json_bytes, _ := json.Marshal(data)
 		json_all, _ := json.Marshal(dataall)
-		json_hg, _ := json.Marshal(data_hg)
-		json_cnt, _ := json.Marshal(runecount(data_hg))
 		fmt.Fprintf(response, "%s\n", json_bytes)
-		fmt.Fprintf(response, "%s\n", json_all) //한글이 브라우저문제로 깨져서 보임.
-		fmt.Fprintf(response, "%s\n", json_hg)
-		fmt.Fprintf(response, "count of data_hg is : %s\n", json_cnt)
+		fmt.Fprintf(response, "%s\n", json_all)
 	} else {
 		// 거짓일 경우 오류 전달
 		http.Error(response, "404 page not found", 404)
 	}
 }
 
-// imdhson이 연습용으로 추가한 함수. 한글을 한글자씩 rune으로 쪼개에서 변환하여줌
+// imdhson이 연습용으로 추가한 함수.
 // 디버그 목적으로 사용하기 적합
 func splitHangeul(in string) []rune {
 	var out []rune
@@ -159,11 +154,6 @@ func splitHangeul(in string) []rune {
 		out = append(out, rune(v))
 	}
 	return out
-}
-
-// imdhson이 연습용으로 추가한 함수. 한글자씩 쪼갠 글자가 몇글자인지 세어줌
-func runecount(in []rune) int {
-	return len(in)
 }
 
 func main() {
