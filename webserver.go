@@ -133,14 +133,11 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 	// itemMatches는 regex 매치로 다음과 같이 작동  ["/item/which", "which"]
 	if len(itemMatches) > 0 {
 		// 참일 경우 JSON을 클라이언트에게 전송
-		data["name"] = itemMatches[1]
-		dataall := itemMatches
-		dataall = append(dataall, "This is long JSON data for calculation for bytes.")
-		//json_bytes, _ := json.Marshal(data)
-		json_all, _ := json.Marshal(dataall)
-		//fmt.Fprintf(response, "%s\n", json_bytes)
-		fmt.Fprintf(response, "%s\n", json_all)
-		fmt.Fprintf(response, "%d\n", json_size((json_all))) //json marshal로 pack한 데이터가 얼마의 크기를 갖는지?
+		data := "This is long JSON data for calculation for bytes."
+		path_j, _ := json.Marshal(itemMatches[1])
+		data_j, _ := json.Marshal(data)
+		fmt.Fprintf(response, "your request is : %s\n%s\n", path_j, data_j)
+		fmt.Fprintf(response, "%d\n", json_size((data_j))) //json marshal로 pack한 데이터가 얼마의 크기를 갖는지?
 	} else {
 		// 거짓일 경우 오류 전달
 		http.Error(response, "404 page not found", 404)
