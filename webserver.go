@@ -133,7 +133,7 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 		data := "This is long JSON data for calculation for bytes."
 		path_j, _ := json.Marshal(itemMatches[1])
 		data_j, _ := json.Marshal(data)
-		fmt.Fprintf(response, "your request is : %s\n%s\n", path_j, data_j)
+		fmt.Fprintf(response, "your request is : %s and link capacity is %d. len is %d\n%s", path_j, json_size(path_j), link_len(itemMatches[1]), data_j)
 		fmt.Fprintf(response, "%d\n", json_size((data_j))) //json marshal로 pack한 데이터가 얼마의 크기를 갖는지?
 	} else {
 		// 거짓일 경우 오류 전달
@@ -145,6 +145,13 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 // json 전체 바이트 수를 반환하는 함수
 func json_size(in []byte) int {
 	return cap(in)
+}
+
+// imdhson이 연습용으로 추가한 함수.
+// string의 길이를 반환해줍니다
+func link_len(in string) int {
+	r := []rune(in)
+	return len(r)
 }
 
 func main() {
