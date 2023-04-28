@@ -136,10 +136,11 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 		data["name"] = itemMatches[1]
 		dataall := itemMatches
 		dataall = append(dataall, "This is long JSON data for calculation for bytes.")
-		json_bytes, _ := json.Marshal(data)
+		//json_bytes, _ := json.Marshal(data)
 		json_all, _ := json.Marshal(dataall)
-		fmt.Fprintf(response, "%s\n", json_bytes)
+		//fmt.Fprintf(response, "%s\n", json_bytes)
 		fmt.Fprintf(response, "%s\n", json_all)
+		fmt.Fprintf(response, "%d\n", json_size((json_all))) //json marshal로 pack한 데이터가 얼마의 크기를 갖는지?
 	} else {
 		// 거짓일 경우 오류 전달
 		http.Error(response, "404 page not found", 404)
@@ -147,13 +148,9 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 }
 
 // imdhson이 연습용으로 추가한 함수.
-// 디버그 목적으로 사용하기 적합
-func splitHangeul(in string) []rune {
-	var out []rune
-	for _, v := range in {
-		out = append(out, rune(v))
-	}
-	return out
+// json 전체 바이트 수를 반환하는 함수
+func json_size(in []byte) int {
+	return cap(in)
 }
 
 func main() {
