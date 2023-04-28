@@ -124,9 +124,6 @@ func ItemHandler(response http.ResponseWriter, request *http.Request) {
 	SetMyCookie(response)
 	response.Header().Set("Content-type", "application/json")
 
-	// 클라이언트에게 재전송할 일부 샘플 데이터
-	data := map[string]string{"what": "item", "name": ""}
-
 	// URL 형식이 /item/name이 맞는가?
 	var itemURL = regexp.MustCompile(`^/item/(\w+)$`)
 	var itemMatches = itemURL.FindStringSubmatch(request.URL.Path)
